@@ -24,6 +24,7 @@ namespace Squishies
         private bool isProcessing = false;
 
         public bool IsProcessing => isProcessing;
+        public bool IsInitialized => grid != null;
         public float CellSize => cellSize;
         public float YOffset => yOffset;
 
@@ -39,6 +40,7 @@ namespace Squishies
 
         public void InitializeGrid(int numTypes)
         {
+            Debug.Log($"[GridManager] InitializeGrid called with {numTypes} types");
             activeTypeCount = Mathf.Clamp(numTypes, 4, 7);
             activeTypes = SquishyDatabase.AllTypes.Take(activeTypeCount).ToList();
 
@@ -84,7 +86,6 @@ namespace Squishies
                 template.SetActive(false);
 
                 squishyPool = new ObjectPool<Squishy>(squishyComponent, gridParent, 80);
-                Destroy(template);
             }
 
             // Initialize grid array
@@ -148,7 +149,7 @@ namespace Squishies
 
         public Squishy GetSquishyAt(Vector2Int pos)
         {
-            if (!IsValidPosition(pos))
+            if (grid == null || !IsValidPosition(pos))
                 return null;
             return grid[pos.x, pos.y];
         }
@@ -199,7 +200,7 @@ namespace Squishies
 
         public bool IsCellEmpty(Vector2Int pos)
         {
-            return IsValidPosition(pos) && grid[pos.x, pos.y] == null;
+            return grid != null && IsValidPosition(pos) && grid[pos.x, pos.y] == null;
         }
 
         public Vector3 GridToWorldPosition(Vector2Int pos)

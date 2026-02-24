@@ -47,11 +47,6 @@ namespace Squishies.Editor
             PlayerSettings.iOS.requiresPersistentWiFi = false;
 #endif
 
-            PlayerSettings.SetAspectRatio(AspectRatio.Aspect4by3, true);
-            PlayerSettings.SetAspectRatio(AspectRatio.Aspect5by4, true);
-            PlayerSettings.SetAspectRatio(AspectRatio.Aspect16by9, true);
-            PlayerSettings.SetAspectRatio(AspectRatio.Aspect16by10, true);
-
             // Default resolution for editor testing
             PlayerSettings.defaultScreenWidth = 540;
             PlayerSettings.defaultScreenHeight = 960;

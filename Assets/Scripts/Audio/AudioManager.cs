@@ -26,7 +26,6 @@ namespace Squishies
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
 
             // Create audio sources
             musicSource = gameObject.AddComponent<AudioSource>();

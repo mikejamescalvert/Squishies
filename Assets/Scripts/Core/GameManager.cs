@@ -28,7 +28,6 @@ namespace Squishies
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
 
         private void Update()
