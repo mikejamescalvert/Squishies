@@ -35,7 +35,7 @@ namespace Squishies
 
         private void Update()
         {
-            if (!InputEnabled || GridManager.Instance == null || GridManager.Instance.IsProcessing)
+            if (!InputEnabled || GridManager.Instance == null || !GridManager.Instance.IsInitialized || GridManager.Instance.IsProcessing)
                 return;
 
             // Get input position (works for both mouse and touch)

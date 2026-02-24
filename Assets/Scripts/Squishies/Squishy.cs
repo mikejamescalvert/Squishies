@@ -42,7 +42,7 @@ namespace Squishies
                 faceRenderer = faceObj.AddComponent<SpriteRenderer>();
             }
 
-            faceRenderer.sortingOrder = 1;
+            faceRenderer.sortingOrder = 2;
         }
 
         public void Initialize(SquishyData data, Vector2Int gridPos, SquishySize size = SquishySize.Normal)
