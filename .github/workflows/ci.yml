@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-validate:
+    name: Validate Project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Check for missing meta files
+        run: |
+          echo "Checking for .cs files missing corresponding .meta files..."
+          exit_code=0
+          while IFS= read -r cs_file; do
+            meta_file="${cs_file}.meta"
+            if [ ! -f "$meta_file" ]; then
+              echo "ERROR: Missing meta file for $cs_file"
+              exit_code=1
+            fi
+          done < <(find Assets -name "*.cs" -type f)
+
+          if [ $exit_code -eq 0 ]; then
+            echo "All .cs files have corresponding .meta files."
+          fi
+          exit $exit_code
+
+      - name: Check for orphaned meta files
+        run: |
+          echo "Checking for orphaned .meta files..."
+          exit_code=0
+          while IFS= read -r meta_file; do
+            source_file="${meta_file%.meta}"
+            if [ ! -e "$source_file" ]; then
+              echo "WARNING: Orphaned meta file: $meta_file"
+            fi
+          done < <(find Assets -name "*.meta" -type f)
+          echo "Orphaned meta check complete."
+
+      - name: Validate manifest.json
+        run: |
+          echo "Validating Packages/manifest.json..."
+          python3 -c "import json; json.load(open('Packages/manifest.json'))"
+          echo "manifest.json is valid JSON."
+
+      - name: Check for prohibited files
+        run: |
+          echo "Checking for files that should not be committed..."
+          exit_code=0
+
+          # Check for Library/ directory
+          if [ -d "Library" ]; then
+            echo "ERROR: Library/ directory should not be committed"
+            exit_code=1
+          fi
+
+          # Check for Temp/ directory
+          if [ -d "Temp" ]; then
+            echo "ERROR: Temp/ directory should not be committed"
+            exit_code=1
+          fi
+
+          # Check for .csproj / .sln files
+          if ls *.csproj 1>/dev/null 2>&1 || ls *.sln 1>/dev/null 2>&1; then
+            echo "ERROR: IDE project files (.csproj/.sln) should not be committed"
+            exit_code=1
+          fi
+
+          if [ $exit_code -eq 0 ]; then
+            echo "No prohibited files found."
+          fi
+          exit $exit_code
+
+      - name: Validate ProjectSettings exist
+        run: |
+          echo "Checking required ProjectSettings files..."
+          required_files=(
+            "ProjectSettings/ProjectSettings.asset"
+            "ProjectSettings/ProjectVersion.txt"
+            "ProjectSettings/EditorBuildSettings.asset"
+            "ProjectSettings/TagManager.asset"
+            "ProjectSettings/InputManager.asset"
+          )
+          exit_code=0
+          for f in "${required_files[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "ERROR: Missing required file: $f"
+              exit_code=1
+            else
+              echo "OK: $f"
+            fi
+          done
+          exit $exit_code
+
+      - name: Check scene files exist
+        run: |
+          echo "Checking required scene files..."
+          scenes=(
+            "Assets/Scenes/Game.unity"
+            "Assets/Scenes/MainMenu.unity"
+            "Assets/Scenes/Workshop.unity"
+          )
+          exit_code=0
+          for s in "${scenes[@]}"; do
+            if [ ! -f "$s" ]; then
+              echo "ERROR: Missing scene: $s"
+              exit_code=1
+            else
+              echo "OK: $s"
+            fi
+          done
+          exit $exit_code
+
+      - name: Verify script structure
+        run: |
+          echo "Checking expected script directories..."
+          dirs=(
+            "Assets/Scripts/Core"
+            "Assets/Scripts/Squishies"
+            "Assets/Scripts/Input"
+            "Assets/Scripts/VFX"
+            "Assets/Scripts/UI"
+            "Assets/Scripts/Audio"
+            "Assets/Scripts/Utility"
+            "Assets/Editor"
+          )
+          for d in "${dirs[@]}"; do
+            if [ ! -d "$d" ]; then
+              echo "WARNING: Missing directory: $d"
+            else
+              count=$(find "$d" -name "*.cs" -type f | wc -l)
+              echo "OK: $d ($count scripts)"
+            fi
+          done
